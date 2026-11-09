@@ -52,6 +52,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["semantic: loads a small embedding model (downloads on first run)"]
 
 [dependency-groups]
 dev = [
