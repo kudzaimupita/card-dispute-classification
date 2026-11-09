@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import time
 from collections import Counter
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
@@ -19,7 +20,8 @@ from dotenv import load_dotenv
 
 from dispute_clf.attributes import load_attribute_grid
 from dispute_clf.baselines import tfidf
-from dispute_clf.evaluation.metrics import score
+from dispute_clf.evaluation.metrics import Scores, score
+from dispute_clf.external import ExternalExample, build_mapped_set, load_intent_mapping
 from dispute_clf.generation.batch import BatchRecord, build_requests, collect, submit
 from dispute_clf.generation.config import GenerationConfig, load_generation_config
 from dispute_clf.generation.planner import GenerationSlot, plan_slots
@@ -28,7 +30,7 @@ from dispute_clf.labels import load_label_schema
 from dispute_clf.preprocessing.dedup import cross_split_overlap, deduplicate
 from dispute_clf.preprocessing.split import Split, leaked_groups, split_by_group
 from dispute_clf.preprocessing.typos import apply_typos
-from dispute_clf.records import Message, read_jsonl, write_jsonl
+from dispute_clf.records import LabelledText, Message, read_jsonl, write_jsonl
 from dispute_clf.settings import load_preprocessing_config, load_tfidf_config
 
 app = typer.Typer(no_args_is_help=True, help="Card-dispute message classification pipeline.")
@@ -196,16 +198,49 @@ def split(
     typer.echo(f"sizes {report['sizes']}")
 
 
+@app.command("build-external")
+def build_external(
+    config_path: Annotated[Path, typer.Option("--config")] = Path("configs/banking77.yaml"),
+) -> None:
+    """Map a public intent dataset onto the five labels for real-text evaluation."""
+    mapping = load_intent_mapping(config_path)
+    examples = build_mapped_set(mapping)
+    write_jsonl(mapping.output, examples)
+    counts = Counter(example.label.value for example in examples)
+    typer.echo(f"{len(examples)} examples -> {mapping.output} {dict(sorted(counts.items()))}")
+
+
+def _save_evaluation(
+    output: Path,
+    name: str,
+    *,
+    examples: Sequence[LabelledText],
+    predictions: list[str],
+    scores: Scores,
+    extra: dict[str, object],
+) -> None:
+    _write_json(
+        output / f"metrics_{name}.json", {**extra, "split": name, "scores": scores.model_dump()}
+    )
+    with (output / f"predictions_{name}.jsonl").open("w", encoding="utf-8") as handle:
+        for example, predicted in zip(examples, predictions, strict=True):
+            row = {"id": example.id, "label": example.label.value, "pred": predicted}
+            handle.write(json.dumps(row) + "\n")
+    f1 = scores.macro_f1
+    typer.echo(f"{name}: macro-F1 {f1.estimate:.3f} [{f1.low:.3f}, {f1.high:.3f}] (n={scores.n})")
+
+
 @app.command("train-tfidf")
 def train_tfidf(
     config_path: Annotated[Path, typer.Option("--config")] = Path("configs/tfidf.yaml"),
     evaluate_on: Annotated[Split, typer.Option(help="Split to report.")] = Split.VAL,
+    external: Annotated[
+        Path | None, typer.Option(help="Also score a mapped real-text set (JSONL).")
+    ] = None,
 ) -> None:
     """Select C by grouped cross-validation on train and score the chosen split."""
     config = load_tfidf_config(config_path)
     train = read_jsonl(config.paths.splits_dir / "train.jsonl", Message)
-    evaluation = read_jsonl(config.paths.splits_dir / f"{evaluate_on.value}.jsonl", Message)
-
     fitted = tfidf.fit(
         train,
         c_grid=config.c_grid,
@@ -213,30 +248,38 @@ def train_tfidf(
         min_df=config.min_df,
         seed=config.seed,
     )
-    predictions = tfidf.predict(fitted.pipeline, evaluation)
-    scores = score(
-        [m.label.value for m in evaluation],
-        predictions,
-        n_resamples=config.bootstrap_resamples,
-        seed=config.seed,
-    )
+    meta: dict[str, object] = {
+        "system": "tfidf_logreg",
+        "best_c": fitted.best_c,
+        "cv_macro_f1": fitted.cv_macro_f1,
+    }
+    typer.echo(f"C={fitted.best_c}")
 
-    output = config.paths.output_dir
-    _write_json(
-        output / f"metrics_{evaluate_on.value}.json",
-        {
-            "system": "tfidf_logreg",
-            "split": evaluate_on.value,
-            "best_c": fitted.best_c,
-            "cv_macro_f1": fitted.cv_macro_f1,
-            "scores": scores.model_dump(),
-        },
-    )
-    with (output / f"predictions_{evaluate_on.value}.jsonl").open("w", encoding="utf-8") as handle:
-        for message, predicted in zip(evaluation, predictions, strict=True):
-            handle.write(
-                json.dumps({"id": message.id, "label": message.label.value, "pred": predicted})
-                + "\n"
-            )
-    f1 = scores.macro_f1
-    typer.echo(f"C={fitted.best_c} macro-F1 {f1.estimate:.3f} [{f1.low:.3f}, {f1.high:.3f}]")
+    evaluations: list[tuple[str, Sequence[LabelledText]]] = [
+        (
+            evaluate_on.value,
+            read_jsonl(config.paths.splits_dir / f"{evaluate_on.value}.jsonl", Message),
+        )
+    ]
+    if external is not None:
+        evaluations.append((external.stem, read_jsonl(external, ExternalExample)))
+
+    for name, examples in evaluations:
+        gold = [example.label.value for example in examples]
+        predictions = tfidf.predict(fitted.pipeline, examples)
+        present = sorted(set(gold))
+        scores = score(
+            gold,
+            predictions,
+            labels=present,
+            n_resamples=config.bootstrap_resamples,
+            seed=config.seed,
+        )
+        _save_evaluation(
+            config.paths.output_dir,
+            name,
+            examples=examples,
+            predictions=predictions,
+            scores=scores,
+            extra=meta,
+        )
