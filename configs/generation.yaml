@@ -7,7 +7,7 @@ max_tokens: 4000
 # 90 slots per label x 5 labels x 8 messages = 3,600 messages before deduplication.
 slots_per_label: 90
 messages_per_slot: 8
-seed: 20261110
+seed: 20261109
 
 paths:
   labels: configs/labels.yaml

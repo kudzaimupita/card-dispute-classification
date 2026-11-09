@@ -41,11 +41,11 @@ def build_system_prompt(schema: LabelSchema) -> str:
         "date, reference and amount, and never reproduce real personal data.\n\n"
         "The dataset has five categories:\n\n"
         f"{_describe_labels(schema)}\n\n"
-        "Each request asks for messages in one target category. Every message must belong "
-        "clearly to that category under the definitions and boundary rules, read as if a real "
-        "customer wrote it, and differ from the others in situation and wording. Do not name "
-        "the category, and avoid its label words unless a real customer would naturally use "
-        "them. Write with correct spelling; typing errors are added separately."
+        "Each request asks for messages in one target category. Every message must belong to "
+        "that category under the definitions and boundary rules, even when it is phrased "
+        "indirectly or mentions other issues; read as if a real customer wrote it; and differ "
+        "from the others in situation and wording. Do not name the category. Write with "
+        "correct spelling; typing errors are added separately."
     )
 
 
@@ -63,6 +63,7 @@ def build_user_prompt(slot: GenerationSlot, schema: LabelSchema, grid: Attribute
         f"- Currency for any amounts: {attrs.currency}\n"
         f"- Type of merchant involved: {attrs.merchant_type}\n"
         f"- Tone: {attrs.tone}\n\n"
+        f"How the problem is expressed: {grid.describe_difficulty(attrs.difficulty)}\n\n"
         f"Vary the situation, the details given and the sentence structure across the "
         f"{slot.n_messages} messages."
     )

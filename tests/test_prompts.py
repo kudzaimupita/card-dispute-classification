@@ -22,6 +22,7 @@ def test_user_prompt_states_target_and_hides_typo_level(
     assert slot.label.value in prompt
     assert "8 distinct messages" in prompt
     assert "typo" not in prompt.lower()
+    assert attribute_grid.describe_difficulty(slot.attributes.difficulty) in prompt
 
 
 def test_output_schema_is_closed() -> None:

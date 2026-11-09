@@ -51,4 +51,11 @@ search is limited to the grids stated in the configuration files.
 
 ## Changes after registration
 
-None yet.
+**9 November 2026: difficulty attribute added to generation.** The first corpus (3,587
+messages, every message a typical case of its class) let the TF-IDF baseline reach
+validation macro-F1 0.997 [0.991, 1.000]. At that ceiling no hypothesis can be tested. A
+`difficulty` attribute was added to the grid with three levels sampled uniformly: typical,
+indirect (no category name or usual cue words) and multi-issue (a secondary issue from
+another category, with the primary request decided by the boundary rules). The corpus was
+regenerated with a new seed. No human test labels existed and no test split had been scored
+when this change was made. The first corpus is kept as a typical-only comparison set.

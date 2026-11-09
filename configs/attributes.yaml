@@ -61,6 +61,17 @@ tone:
   - terse
   - confused
 
+difficulty:
+  typical: >-
+    State the problem plainly, as most customers would.
+  indirect: >-
+    Describe what happened without naming the type of problem or using the usual words for
+    it, such as "fraud", "unauthorised", "twice", "duplicate", "never arrived", "subscription"
+    or "cancel"; a reader has to infer the category from the situation described.
+  multi_issue: >-
+    Also mention, in passing, a second issue that belongs to a different category, while the
+    customer's main request stays in the target category under the boundary rules.
+
 typo_level:
   - none
   - light

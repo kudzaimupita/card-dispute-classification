@@ -31,6 +31,7 @@ def attributes() -> Attributes:
         currency="GBP",
         merchant_type="airline",
         tone="calm and polite",
+        difficulty="typical",
         typo_level=TypoLevel.NONE,
     )
 

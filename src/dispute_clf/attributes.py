@@ -23,6 +23,7 @@ class Attributes(BaseModel):
     currency: str
     merchant_type: str
     tone: str
+    difficulty: str
     typo_level: TypoLevel
 
 
@@ -36,6 +37,7 @@ class AttributeGrid(BaseModel):
     currency: tuple[str, ...]
     merchant_type: tuple[str, ...]
     tone: tuple[str, ...]
+    difficulty: dict[str, str]
     typo_level: tuple[TypoLevel, ...]
 
     @field_validator("persona", "channel", "english_variety", "currency", "merchant_type", "tone")
@@ -54,11 +56,15 @@ class AttributeGrid(BaseModel):
             currency=rng.choice(self.currency),
             merchant_type=rng.choice(self.merchant_type),
             tone=rng.choice(self.tone),
+            difficulty=rng.choice(sorted(self.difficulty)),
             typo_level=rng.choice(self.typo_level),
         )
 
     def describe_length(self, key: str) -> str:
         return self.length[key]
+
+    def describe_difficulty(self, key: str) -> str:
+        return self.difficulty[key]
 
 
 def load_attribute_grid(path: Path) -> AttributeGrid:
