@@ -1,0 +1,67 @@
+# Attribute grid for controlled generation. One value per attribute is sampled uniformly
+# for each generation slot and recorded with every message it produces.
+# typo_level is not shown to the generator: noise is applied afterwards by a seeded
+# corruptor so that it is independent of the generating model.
+
+persona:
+  - university student
+  - retired pensioner
+  - small-business owner
+  - frequent business traveller
+  - parent managing a family budget
+  - gig-economy driver
+  - nurse working night shifts
+  - recent immigrant using a new bank
+  - online gamer
+  - office administrator paying company expenses
+  - farmer in a rural area
+  - software developer
+
+channel:
+  - in-app chat
+  - email to the bank
+  - web dispute form
+  - message to a social media support account
+
+length:
+  short: one sentence of 5 to 15 words
+  medium: two to four sentences
+  long: a detailed message of 40 to 80 words
+
+english_variety:
+  - British English
+  - American English
+  - South African English
+  - Irish English
+  - Australian English
+
+currency:
+  - GBP
+  - USD
+  - EUR
+  - ZAR
+  - AUD
+
+merchant_type:
+  - online marketplace
+  - airline
+  - streaming service
+  - grocery store
+  - fitness gym
+  - hotel booking site
+  - mobile app store
+  - electronics retailer
+  - food delivery app
+  - ride-hailing service
+
+tone:
+  - calm and polite
+  - frustrated
+  - anxious
+  - terse
+  - confused
+
+typo_level:
+  - none
+  - light
+  - heavy

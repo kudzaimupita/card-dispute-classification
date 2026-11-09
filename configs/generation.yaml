@@ -1,0 +1,18 @@
+# Synthetic corpus generation settings.
+
+model: claude-sonnet-5-5
+effort: low
+max_tokens: 4000
+
+# 90 slots per label x 5 labels x 8 messages = 3,600 messages before deduplication.
+slots_per_label: 90
+messages_per_slot: 8
+seed: 20261110
+
+paths:
+  labels: configs/labels.yaml
+  attributes: configs/attributes.yaml
+  slots: data/interim/slots.jsonl
+  batch: data/interim/batch.json
+  generated: data/raw/generated.jsonl
+  failures: data/raw/failures.jsonl

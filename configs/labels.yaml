@@ -1,0 +1,80 @@
+# Label schema. Single source of truth for prompts, training and documentation.
+# Each message receives exactly one label: the customer's primary request.
+
+labels:
+  - id: fraud
+    name: Unauthorised transaction
+    definition: >-
+      The customer reports a transaction they did not make or authorise, or suspects that
+      their card or card details are being used by someone else.
+    includes:
+      - an unrecognised payment on a statement
+      - card lost or stolen and then used
+      - card details used online without the cardholder's knowledge
+    excludes:
+      - a payment the customer made but was charged for twice (duplicate_charge)
+      - a subscription the customer signed up for and now wants to stop (subscription_cancellation)
+
+  - id: goods_not_received
+    name: Goods or services not received
+    definition: >-
+      The customer paid for goods or a service that never arrived, was never delivered,
+      or was never provided, and wants their money back or the order fulfilled.
+    includes:
+      - an online order that never arrived
+      - a cancelled event, flight or booking that was not refunded
+      - a merchant that stopped responding after payment
+    excludes:
+      - goods that arrived but are damaged or not as described (other)
+
+  - id: duplicate_charge
+    name: Duplicate or incorrect amount
+    definition: >-
+      The customer made a genuine purchase but was charged more than once for it, or was
+      charged an amount different from the one agreed.
+    includes:
+      - the same payment appearing twice
+      - a pre-authorisation that was captured in addition to the final amount
+      - an amount higher than the receipt or quote
+    excludes:
+      - a charge the customer does not recognise at all (fraud)
+
+  - id: subscription_cancellation
+    name: Subscription or recurring payment
+    definition: >-
+      The customer wants to stop, or is disputing, a recurring payment: a subscription,
+      membership or free trial that continued to bill after cancellation or without
+      clear consent.
+    includes:
+      - charged after cancelling a subscription
+      - a free trial that converted to a paid plan
+      - asking the bank to block future payments to a merchant
+    excludes:
+      - a one-off payment charged twice (duplicate_charge)
+
+  - id: other
+    name: Other card or payment request
+    definition: >-
+      Any card or payment message that is not one of the four dispute types above.
+    includes:
+      - goods received but damaged, faulty or not as described
+      - a declined card, a blocked card or a PIN problem
+      - fees, interest, exchange rates or statement questions
+      - refund status for a return the merchant already accepted
+    excludes:
+      - messages that fit any of the four categories above
+
+# Boundary rules applied when a message mentions more than one issue.
+boundary_rules:
+  - >-
+    Label the primary request: what the customer wants the bank to do now.
+  - >-
+    "I cancelled my subscription and was then charged twice": subscription_cancellation if the
+    complaint is about being billed after cancelling; duplicate_charge if the customer accepts
+    the subscription and objects only to the second identical charge.
+  - >-
+    "My card was stolen and I also never got my order": fraud, because an unauthorised use
+    of the card takes priority over a merchant dispute.
+  - >-
+    A merchant refund that is late but promised is other; a merchant that refuses or ignores
+    the customer after non-delivery is goods_not_received.
