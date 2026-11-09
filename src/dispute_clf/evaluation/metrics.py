@@ -20,8 +20,8 @@ Metric = Callable[[Sequence[str], Sequence[str]], float]
 LABELS: list[str] = [label.value for label in Label.ordered()]
 
 
-def macro_f1(y_true: Sequence[str], y_pred: Sequence[str]) -> float:
-    return float(f1_score(y_true, y_pred, labels=LABELS, average="macro", zero_division=0))
+def macro_f1(y_true: Sequence[str], y_pred: Sequence[str], labels: Sequence[str] = LABELS) -> float:
+    return float(f1_score(y_true, y_pred, labels=list(labels), average="macro", zero_division=0))
 
 
 def accuracy(y_true: Sequence[str], y_pred: Sequence[str]) -> float:
@@ -94,14 +94,26 @@ def paired_bootstrap_difference(
 
 
 def score(
-    y_true: Sequence[str], y_pred: Sequence[str], *, n_resamples: int = 1000, seed: int = 0
+    y_true: Sequence[str],
+    y_pred: Sequence[str],
+    *,
+    labels: Sequence[str] | None = None,
+    n_resamples: int = 1000,
+    seed: int = 0,
 ) -> Scores:
-    per_class = f1_score(y_true, y_pred, labels=LABELS, average=None, zero_division=0)
+    """Score predictions. ``labels`` defaults to all five; pass the labels present in an
+    evaluation set that covers only some of them, so absent labels do not count as zero."""
+    label_set = list(labels or LABELS)
+
+    def macro(truth: Sequence[str], pred: Sequence[str]) -> float:
+        return macro_f1(truth, pred, label_set)
+
+    per_class = f1_score(y_true, y_pred, labels=label_set, average=None, zero_division=0)
     return Scores(
         n=len(y_true),
         accuracy=bootstrap_interval(y_true, y_pred, accuracy, n_resamples=n_resamples, seed=seed),
-        macro_f1=bootstrap_interval(y_true, y_pred, macro_f1, n_resamples=n_resamples, seed=seed),
-        per_class_f1={label: float(value) for label, value in zip(LABELS, per_class, strict=True)},
+        macro_f1=bootstrap_interval(y_true, y_pred, macro, n_resamples=n_resamples, seed=seed),
+        per_class_f1={label: float(v) for label, v in zip(label_set, per_class, strict=True)},
         confusion=confusion_matrix(y_true, y_pred, labels=LABELS).tolist(),
         labels=LABELS,
     )

@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, StratifiedGroupKFold
 from sklearn.pipeline import FeatureUnion, Pipeline
 
-from dispute_clf.records import Message
+from dispute_clf.records import LabelledText, Message
 
 DEFAULT_C_GRID: tuple[float, ...] = (0.3, 1.0, 3.0, 10.0)
 
@@ -84,5 +84,5 @@ def fit(
     )
 
 
-def predict(pipeline: Pipeline, messages: Sequence[Message]) -> list[str]:
+def predict(pipeline: Pipeline, messages: Sequence[LabelledText]) -> list[str]:
     return [str(label) for label in pipeline.predict([message.text for message in messages])]

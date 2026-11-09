@@ -5,11 +5,25 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
+from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict
 
 from dispute_clf.attributes import Attributes
 from dispute_clf.labels import Label
+
+
+class LabelledText(Protocol):
+    """Anything with an id, a text and a gold label: generated or external examples."""
+
+    @property
+    def id(self) -> str: ...
+
+    @property
+    def text(self) -> str: ...
+
+    @property
+    def label(self) -> Label: ...
 
 
 class Provenance(BaseModel):

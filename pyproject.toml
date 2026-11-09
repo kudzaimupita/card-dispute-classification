@@ -8,6 +8,7 @@ license = "Apache-2.0"
 authors = [{ name = "Kudzai Mupita" }]
 dependencies = [
     "anthropic>=2.6.0",
+    "datasets>=5.1.0",
     "datasketch>=2.0.0",
     "numpy>=2.5.4",
     "pydantic>=2.14.3",

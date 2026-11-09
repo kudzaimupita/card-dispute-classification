@@ -46,3 +46,12 @@ def test_wider_confidence_gives_wider_interval(confidence: float) -> None:
     other = bootstrap_interval(TRUTH, noisy, macro_f1, n_resamples=500, confidence=confidence)
     widths = (base.high - base.low, other.high - other.low)
     assert (widths[1] < widths[0]) if confidence < 0.95 else (widths[1] > widths[0])
+
+
+def test_score_restricted_to_present_labels_ignores_absent_classes() -> None:
+    truth = ["fraud", "other"] * 10
+    full = score(truth, truth, n_resamples=50)
+    present = score(truth, truth, labels=["fraud", "other"], n_resamples=50)
+    assert present.macro_f1.estimate == 1.0
+    assert full.macro_f1.estimate == 0.4  # three absent labels each count as F1 = 0
+    assert set(present.per_class_f1) == {"fraud", "other"}
