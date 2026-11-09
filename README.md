@@ -17,7 +17,8 @@ annotators. The study design, hypotheses and analysis plan are fixed in advance 
 | Generation pipeline (planning, prompts, batch submit and collect) | Done |
 | Deduplication, typo noise, group split | Done |
 | TF-IDF + logistic regression baseline | Done |
-| Corpus generation run | Pending |
+| Corpus generation run | Done: 3,586 messages, difficulty mix typical / indirect / multi-issue |
+| Real-text slice (BANKING77, 400 queries, 3 labels) | Done |
 | Human-labelled test set and agreement | Pending |
 | Fine-tuned encoders (DeBERTa-v3-base, UltraBERT-150M) | Pending |
 | Zero-shot LLM baselines with cost accounting | Pending |
@@ -42,7 +43,18 @@ annotators. The study design, hypotheses and analysis plan are fixed in advance 
    label. The pipeline fails if any request crosses a split, and reports semantic overlap
    between training and evaluation splits.
 6. **Evaluation.** Macro-F1 is the primary metric, with 1,000-resample bootstrap intervals and
-   paired bootstrap intervals for differences between systems.
+   paired bootstrap intervals for differences between systems. Models are scored on synthetic
+   validation, on real BANKING77 queries mapped to three of the labels, and on the
+   human-labelled test set.
+
+## Results so far
+
+| System | Synthetic validation | BANKING77 (real) |
+|---|---|---|
+| TF-IDF + logistic regression | 0.977 [0.961, 0.991] | 0.781 [0.738, 0.823] |
+
+Macro-F1 with 95% bootstrap intervals. Full history in
+[`docs/development-log.md`](docs/development-log.md).
 
 ## Repository layout
 

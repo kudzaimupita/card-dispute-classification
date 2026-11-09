@@ -18,3 +18,14 @@ Dated record of decisions that affect results. One entry per decision.
   indirectly or when they mix issues.
 - Decision: add a difficulty attribute (typical, indirect, multi-issue) and regenerate.
   Recorded in the pre-registration. First corpus kept locally as `data/v1-typical/`.
+- Second generation batch (difficulty attribute, seed 20261109): 450 succeeded, 3,586
+  messages; deduplication removed 1 semantic duplicate. Splits: 2,871 / 354 / 360.
+- TF-IDF on the new corpus: validation macro-F1 0.977 [0.961, 0.991]. By difficulty:
+  typical 1.000, indirect 0.990, multi-issue 0.950. Synthetic validation shares the
+  generator with training and stays near the ceiling.
+- Real-text check: BANKING77 test intents mapped to three of the five labels (400 queries;
+  mapping in `configs/banking77.yaml`). TF-IDF trained on the synthetic corpus scores
+  macro-F1 0.781 [0.738, 0.823] on these real queries: a drop of about 20 points from
+  synthetic validation. BANKING77 has no goods-not-received or subscription intents.
+- Decision: no further changes to generation. Report synthetic validation, BANKING77 and
+  the human-labelled test set side by side; the gap between them is a result in itself.
