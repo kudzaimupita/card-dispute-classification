@@ -1,0 +1,15 @@
+# Deduplication, noise injection and splitting.
+
+near_threshold: 0.85       # MinHash Jaccard on character 5-grams
+semantic_threshold: 0.9    # cosine similarity, Model2Vec embeddings via semhash
+noise_seed: 20261111
+split_seed: 20261112
+val_fraction: 0.1
+test_fraction: 0.1
+
+paths:
+  generated: data/raw/generated.jsonl
+  clean: data/processed/clean.jsonl
+  dedup_report: data/processed/dedup_report.json
+  splits_dir: data/processed
+  split_report: data/processed/split_report.json

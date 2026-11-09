@@ -1,0 +1,11 @@
+# TF-IDF + logistic regression baseline.
+
+c_grid: [0.3, 1.0, 3.0, 10.0]
+cv_folds: 5
+min_df: 2
+seed: 13
+bootstrap_resamples: 1000
+
+paths:
+  splits_dir: data/processed
+  output_dir: results/tfidf
